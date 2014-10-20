@@ -31,6 +31,10 @@ cd $tmpdir
 # epub is just a zip archive with htmls in it
 unzip "$1" &> /dev/null
 
+# save field separator
+OLDIFS=$IFS
+IFS=$'\n'
+
 # find and parse table of contents
 toc=$(find . -name "_toc_ncx_.ncx" | head -1)
 if [[ -z $toc ]]; then
@@ -38,7 +42,7 @@ if [[ -z $toc ]]; then
 fi
 
 if [[ -n $toc ]]; then
-	files=$(grep "content src" $toc | perl -lpe 's/^.*?"//;s/".*$//' | xargs -I {} find . -name "{}")
+	files=$(grep "content src" $toc | perl -lpe 's/^.*?"//;s/".*$//;$_=(split m|/|)[-1]' | xargs -I {} find . -name "{}")
 else
 	# fall back to raw list of htmls, may result in order mixed up
 	files=$(find . -name "*.*html"| sort -n)
@@ -49,6 +53,8 @@ stage1=`mktemp`
 for f in $files; do
 	html2text -utf8 -width 10000 "$f" >> $stage1
 done
+
+IFS=$OLDIFS
 
 # convert to ASCII with windows line endings
 stage2=`mktemp`
