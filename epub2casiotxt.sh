@@ -3,10 +3,13 @@
 remove_temps=1
 
 # -k option to keep temporary files if something goes wrong
-while getopts ":k" opt; do
+while getopts ":kl" opt; do
   case $opt in
     k)
       remove_temps=
+      ;;
+    l)
+      force_raw_list=1
       ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
@@ -41,11 +44,16 @@ if [[ -z $toc ]]; then
 	toc=$(find . -name "toc.ncx" | head -1)
 fi
 
+# force falling back to raw list of htmls
+if [[ -n $force_raw_list ]]; then
+	toc=
+fi
+
 if [[ -n $toc ]]; then
 	files=$(grep "content src" $toc | perl -lpe 's/^.*?"//;s/".*$//;s/\#.*$//;$_=(split m|/|)[-1]' | xargs -I {} find . -name "{}")
 else
 	# fall back to raw list of htmls, may result in order mixed up
-	files=$(find . -name "*.*html"| sort -n)
+	files=$(find . -name "*.*htm*"| sort -n)
 fi
 
 # convert all htmls to text
