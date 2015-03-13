@@ -50,7 +50,7 @@ if [[ -n $force_raw_list ]]; then
 fi
 
 if [[ -n $toc ]]; then
-	files=$(grep "content src" $toc | perl -lpe 's/^.*?"//;s/".*$//;s/\#.*$//;$_=(split m|/|)[-1]' | xargs -I {} find . -name "{}")
+	files=$(grep "content src" $toc | perl -lpe 's/.*?content src=//;s/^.*?"//;s/".*$//;s/\#.*$//;$_=(split m|/|)[-1]' | xargs -I {} find . -name "{}")
 else
 	# fall back to raw list of htmls, may result in order mixed up
 	files=$(find . -name "*.*htm*"| sort -n)
