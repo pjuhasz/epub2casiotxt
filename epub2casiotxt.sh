@@ -49,8 +49,9 @@ if [[ -n $force_raw_list ]]; then
 	toc=
 fi
 
+# TODO parse the XML properly
 if [[ -n $toc ]]; then
-	files=$(grep "content src" $toc | perl -lpe 's/.*?content src=//;s/^.*?"//;s/".*$//;s/\#.*$//;$_=(split m|/|)[-1]' | xargs -I {} find . -name "{}")
+	files=$(sed -e '/<.navMap>/,$d' $toc | grep "content src" | perl -lpe 's/.*?content src=//;s/^.*?"//;s/".*$//;s/\#.*$//;$_=(split m|/|)[-1]' | xargs -I {} find . -name "{}")
 else
 	# fall back to raw list of htmls, may result in order mixed up
 	files=$(find . -name "*.*htm*"| sort -n)
