@@ -60,7 +60,8 @@ fi
 # convert all htmls to text
 stage1=`mktemp`
 for f in $files; do
-	html2text -utf8 -width 10000 "$f" >> $stage1
+	#html2text -utf8 -width 10000 "$f" >> $stage1
+	html2text -b 10000 "$f" utf8 >> $stage1
 done
 
 IFS=$OLDIFS
