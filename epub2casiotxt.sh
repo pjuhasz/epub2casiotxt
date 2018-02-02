@@ -38,23 +38,15 @@ unzip "$1" &> /dev/null
 OLDIFS=$IFS
 IFS=$'\n'
 
-# find and parse table of contents
-toc=$(find . -name "_toc_ncx_.ncx" | head -1)
-if [[ -z $toc ]]; then
-	toc=$(find . -name "toc.ncx" | head -1)
-fi
+# find root file from container.xml
+root_file=$(sed '2 s/xmlns=".*"//g' < META-INF/container.xml | xmllint --xpath 'string(/container/rootfiles/rootfile[1]/@full-path)' -)
 
-# force falling back to raw list of htmls
+# force falling back to raw list of htmls?
 if [[ -n $force_raw_list ]]; then
-	toc=
-fi
-
-# TODO parse the XML properly
-if [[ -n $toc ]]; then
-	files=$(sed -e '/<.navMap>/,$d' $toc | grep "content src" | perl -lpe 's/.*?content src=//;s/^.*?"//;s/".*$//;s/\#.*$//;$_=(split m|/|)[-1]' | xargs -I {} find . -name "{}")
-else
-	# fall back to raw list of htmls, may result in order mixed up
+	# may result in order mixed up
 	files=$(find . -name "*.*htm*"| sort -n)
+else
+	files=$(sed '1 s/xmlns=".*"//g' < $root_file | xmllint --xpath '/package/manifest/item[@media-type="application/xhtml+xml"]/@href' - | sed 's/ href="\([^"]*\)"/\1\n/g')
 fi
 
 # convert all htmls to text
