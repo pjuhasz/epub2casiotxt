@@ -39,14 +39,14 @@ OLDIFS=$IFS
 IFS=$'\n'
 
 # find root file from container.xml
-root_file=$(sed '2 s/xmlns=".*"//g' < META-INF/container.xml | xmllint --xpath 'string(/container/rootfiles/rootfile[1]/@full-path)' -)
+root_file=$(sed '/^<container/ s/xmlns="[^"]*"//g' < META-INF/container.xml | xmllint --xpath 'string(/container/rootfiles/rootfile[1]/@full-path)' -)
 
 # force falling back to raw list of htmls?
 if [[ -n $force_raw_list ]]; then
 	# may result in order mixed up
 	files=$(find . -name "*.*htm*"| sort -n)
 else
-	files=$(sed '1 s/xmlns=".*"//g' < $root_file | xmllint --xpath '/package/manifest/item[@media-type="application/xhtml+xml"]/@href' - | sed 's/ href="\([^"]*\)"/\1\n/g')
+	files=$(sed '/^<package/ s/xmlns="[^"]*"//g' < $root_file | xmllint --xpath '/package/manifest/item[@media-type="application/xhtml+xml"]/@href' - | sed 's/ href="\([^"]*\)"/\1\n/g')
 fi
 
 # convert all htmls to text
