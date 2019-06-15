@@ -39,7 +39,12 @@ OLDIFS=$IFS
 IFS=$'\n'
 
 # find root file from container.xml
-root_file=$(sed '/^<container/ s/xmlns="[^"]*"//g' < META-INF/container.xml | xmllint --xpath 'string(/container/rootfiles/rootfile[1]/@full-path)' -)
+root_file=$(sed '/<container/ s/xmlns="[^"]*"//g' < META-INF/container.xml | xmllint --xpath 'string(/container/rootfiles/rootfile[1]/@full-path)' -)
+
+if [[ -z $root_file ]]; then
+	echo "Can't parse root file from container.xml" >&2
+	exit 1
+fi
 
 # force falling back to raw list of htmls?
 if [[ -n $force_raw_list ]]; then
@@ -48,6 +53,10 @@ if [[ -n $force_raw_list ]]; then
 else
 	files=$(sed '/^<package/ s/xmlns="[^"]*"//g' < $root_file | xmllint --xpath '/package/manifest/item[@media-type="application/xhtml+xml"]/@href' - | sed 's/ href="\([^"]*\)"/\1\n/g')
 fi
+
+# html paths are relative to rootfile?
+path=$(dirname $root_file)
+cd "$path"
 
 # convert all htmls to text
 stage1=`mktemp`
