@@ -52,11 +52,11 @@ if [[ -n $force_raw_list ]]; then
 	files=$(find . -name "*.*htm*"| sort -n)
 else
 	files=$(sed '/^<package/ s/xmlns="[^"]*"//g' < $root_file | xmllint --xpath '/package/manifest/item[@media-type="application/xhtml+xml"]/@href' - | sed 's/ href="\([^"]*\)"/\1\n/g')
-fi
 
-# html paths are relative to rootfile?
-path=$(dirname $root_file)
-cd "$path"
+	# html paths are relative to rootfile?
+	path=$(dirname $root_file)
+	cd "$path"
+fi
 
 # convert all htmls to text
 stage1=`mktemp`
