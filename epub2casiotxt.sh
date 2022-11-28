@@ -3,13 +3,16 @@
 remove_temps=1
 
 # -k option to keep temporary files if something goes wrong
-while getopts ":kl" opt; do
+while getopts ":klt" opt; do
   case $opt in
     k)
       remove_temps=
       ;;
     l)
       force_raw_list=1
+      ;;
+    t)
+      use_toc_ncx=1
       ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
@@ -23,6 +26,11 @@ shift $(( OPTIND - 1 ));
 if (($# < 2)); then
 	echo "Usage: $0 orig.epub converted.txt";
 	exit 1;
+fi
+
+if [[ $1 == $2 ]]; then
+	echo "Error: The two arguments are the same, not clobbering original file"
+	exit 1
 fi
 
 # copy input to temp dir
@@ -50,6 +58,12 @@ fi
 if [[ -n $force_raw_list ]]; then
 	# may result in order mixed up
 	files=$(find . -name "*.*htm*"| sort -n)
+elif [[ -n $use_toc_ncx ]]; then
+	toc_file=$(find . -name toc.ncx)
+	files=$(perl -lne 'if (/content src/) {s/.*?"(.+?)".*/\1/g; print}' $toc_file)
+
+	path=$(dirname $root_file)
+	cd "$path"
 else
 	files=$(sed '/^<package/ s/xmlns="[^"]*"//g' < $root_file | xmllint --xpath '/package/manifest/item[@media-type="application/xhtml+xml"]/@href' - | sed 's/ href="\([^"]*\)"/\1\n/g')
 
